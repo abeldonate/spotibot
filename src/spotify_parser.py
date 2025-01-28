@@ -3,6 +3,9 @@ import json
 import os
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
+import datetime
+
+#date = datetime.datetime.now().year
 
 load_dotenv()
 client_id = os.getenv("CLIENT_ID")
@@ -16,7 +19,7 @@ sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id, client_secre
 def get_followed_artists():
     artist_list = list()
     while True:
-        response = sp.current_user_followed_artists(limit=30,after=artist_list[-1][1] if len(artist_list) > 0 else None)
+        response = sp.current_user_followed_artists(limit=50,after=artist_list[-1][1] if len(artist_list) > 0 else None)
         if len(response['artists']['items']) == 0:
             return artist_list
         for artist in response['artists']['items']:
@@ -29,6 +32,7 @@ def get_artist_albums(artist):
     album_list = list()
     while True:
         response = sp.artist_albums(artist_id, limit=50, offset=len(album_list))
+        #response = sp.search(q=f'artist:{artist[1]} year:{date}', type='album', limit=50)
         if len(response['items']) == 0:
             return album_list
         for album in response['items']:
@@ -61,9 +65,3 @@ def get_new_releases():
         f.write(json.dumps(new_data))
 
     return new_releases
-
-
-#print(get_followed_artists())
-
-
-
