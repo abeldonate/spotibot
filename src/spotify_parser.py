@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 import json
+from json.decoder import JSONDecodeError
 import os
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
@@ -25,18 +26,14 @@ def get_followed_artists():
         for artist in response['artists']['items']:
             artist_list.append([artist['name'], artist['id']])
 
-
 # Given an artist, get the albums
 def get_artist_albums(artist):
     artist_id = artist[1]
     album_list = list()
-    while True:
-        response = sp.artist_albums(artist_id, limit=50, offset=len(album_list))
-        #response = sp.search(q=f'artist:{artist[1]} year:{date}', type='album', limit=50)
-        if len(response['items']) == 0:
-            return album_list
-        for album in response['items']:
-            album_list.append(album['name'])
+    response = sp.artist_albums(artist_id, limit=10, offset=0)
+    for album in response['items']:
+        album_list.append(album['name'])
+    return album_list
 
 # Convert the list of artist to a dictionary with all the albums
 def artists_to_dict(artists_list):
@@ -52,8 +49,11 @@ def get_new_releases():
     new_data = artists_to_dict(artists_list)
 
     # Read the old_data in json data/data.json
-    with open('data/data.json', 'r') as f:
-        old_data = json.loads(f.read())
+    with open('data/data.json', 'r+') as f:
+        try:
+            old_data = json.load(f)
+        except JSONDecodeError:
+            old_data = dict()
 
     new_releases = dict()
     for artist in new_data:
@@ -61,7 +61,7 @@ def get_new_releases():
             if len(new_data[artist]) > len(old_data[artist]):
                 new_releases[artist] = [album for album in new_data[artist] if album not in old_data[artist]]
 
-    with open('data/data.json', 'w') as f:
+    with open('data/data.json', 'w+') as f:
         f.write(json.dumps(new_data))
 
     return new_releases
