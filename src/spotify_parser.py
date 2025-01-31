@@ -49,10 +49,10 @@ def get_new_releases():
     new_data = artists_to_dict(artists_list)
 
     # Read the old_data in json data/data.json
-    with open('data/data.json', 'r+') as f:
-        try:
+    try:
+        with open('data/data.json', 'r') as f:
             old_data = json.load(f)
-        except JSONDecodeError:
+    except (FileNotFoundError, JSONDecodeError):
             old_data = dict()
 
     new_releases = dict()
